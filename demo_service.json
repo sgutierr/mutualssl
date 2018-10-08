@@ -1,0 +1,167 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "my_template",
+        "creationTimestamp": null
+    },
+    "objects": [
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "demo",
+                "creationTimestamp": null,
+                "annotations": {
+                    "openshift.io/generated-by": "OpenShiftNewApp"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "proxy",
+                        "protocol": "TCP",
+                        "port": 8443,
+                        "targetPort": 8443
+                    }
+                ],
+                "selector": {
+                    "deploymentconfig": "centos"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "centos",
+                "generation": 1,
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "centos"
+                },
+                "annotations": {
+                    "openshift.io/generated-by": "OpenShiftNewApp"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Rolling",
+                    "rollingParams": {
+                        "updatePeriodSeconds": 1,
+                        "intervalSeconds": 1,
+                        "timeoutSeconds": 600,
+                        "maxUnavailable": "25%",
+                        "maxSurge": "25%"
+                    },
+                    "resources": {},
+                    "activeDeadlineSeconds": 21600
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "centos"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "openshift",
+                                "name": "centos:latest"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "revisionHistoryLimit": 10,
+                "test": false,
+                "selector": {
+                    "app": "centos_service",
+                    "deploymentconfig": "centos"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "centos_service",
+                            "deploymentconfig": "centos"
+                        },
+                        "annotations": {
+                            "openshift.io/generated-by": "OpenShiftNewApp"
+                        }
+                    },
+                    "spec": {
+                        "volumes": [
+                            {
+                                "name": "volume-yj191",
+                                "configMap": {
+                                    "name": "mutual",
+                                    "defaultMode": 420
+                                }
+                            }
+                        ],
+                        "containers": [
+                            {
+                                "name": "centos",
+                                "image": "openresty/openresty@sha256:e4c09ac4380c778631bfbc72c21159d8fa330507e9f43641c544731745f30023",
+                                "ports": [
+                                    {
+                                        "name": "proxy",
+                                        "containerPort": 8443,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "volume-yj191",
+                                        "mountPath": "/usr/local/openresty/nginx/conf"
+                                    }
+                                ],
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "Always"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {},
+                        "schedulerName": "default-scheduler"
+                    }
+                }
+            },
+            "status": {
+                "latestVersion": 0,
+                "observedGeneration": 0,
+                "replicas": 0,
+                "updatedReplicas": 0,
+                "availableReplicas": 0,
+                "unavailableReplicas": 0
+            }
+        },
+        {
+            "kind": "ConfigMap",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mutual",
+                "creationTimestamp": null
+            },
+            "data": {
+                "client.crt": "-----BEGIN CERTIFICATE-----\nMIIB+zCCAWQCCQC/uUPW8kpzwjANBgkqhkiG9w0BAQsFADBCMQswCQYDVQQGEwJY\nWDEVMBMGA1UEBwwMRGVmYXVsdCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBh\nbnkgTHRkMB4XDTE4MTAwNTE1MDQzN1oXDTIxMTAwNDE1MDQzN1owQjELMAkGA1UE\nBhMCWFgxFTATBgNVBAcMDERlZmF1bHQgQ2l0eTEcMBoGA1UECgwTRGVmYXVsdCBD\nb21wYW55IEx0ZDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAsCSCcC8Wl8DJ\nW0ENFIQ/u9Uas0gh6rJ3XoRcvNdA8HgNRA2ACnswXSIYg5vv2Xt6un90Cd5v6IBc\ne+YLmBV5x1dkqZJcsIPnUJKWBY1uofF6IfrpZHW+5SXVscTSbcpz9jSgbJcJlVel\nwsZeb5K1f8hH4r3f64v34mjlzCXA9bMCAwEAATANBgkqhkiG9w0BAQsFAAOBgQCp\nqT3dSxqhtqVggcxwmU3pKtd5pQDhlfWJnMAw3aVCxvxyABKk0H4+6Rd1kEtyX7u9\nXW9dpP95TyQ8ouRw9Hy1GeHHfsEhaXUeUmaCJMZTLIIWtnBB6IUWLalhOexGUGZV\nw577dTUDuKEfIS/V1qD6fVLBK3otK60huYfuTtkZ0w==\n-----END CERTIFICATE-----",
+                "nginx.conf": "\nworker_processes  1;\n\nevents {\n  multi_accept        on;\n}\n\nhttp {\n  sendfile           on;\n  tcp_nopush         on;\n  tcp_nodelay        on;\n\n  error_log stderr info;\n\n  server {\n    listen 8443 ssl;\n    server_name _;\n\n    ssl_certificate         server.crt;\n    ssl_certificate_key     server.key;\n\n    ssl_client_certificate  client.crt;\n    ssl_verify_client on;   # optional_no_ca | optional | off\n\n    location / {\n      echo_duplicate 1 $echo_client_request_headers;\n      echo \"\\r\";\n      echo 'ssl_client_verify: $ssl_client_verify';\n      echo 'ssl_client_s_dn: $ssl_client_s_dn';\n      echo 'ssl_client_i_dn: $ssl_client_i_dn';\n      echo \"\\r\";\n      echo_read_request_body;\n      echo $request_body;\n    }\n  }\n}",
+                "server.crt": "-----BEGIN CERTIFICATE-----\nMIIB+zCCAWQCCQC/uUPW8kpzwTANBgkqhkiG9w0BAQsFADBCMQswCQYDVQQGEwJY\nWDEVMBMGA1UEBwwMRGVmYXVsdCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBh\nbnkgTHRkMB4XDTE4MTAwNTE1MDQwN1oXDTIxMTAwNDE1MDQwN1owQjELMAkGA1UE\nBhMCWFgxFTATBgNVBAcMDERlZmF1bHQgQ2l0eTEcMBoGA1UECgwTRGVmYXVsdCBD\nb21wYW55IEx0ZDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEArGa5QW5kWbHB\nFY58oY4rYbCCq4Hh4s3NJSUAHFdb3Zak1lR2MDmTY9/KF130568ay8y/ux9Pwj9c\nzqyEIIKSwi0tFDyd7k5K7bbfAFvVuH5X0KhWUqejIyGPXvVq0Vo0/741JZcS7Pa6\ncZGvaIdtC2ZVDKFvAs2PaMl8uYvQcPkCAwEAATANBgkqhkiG9w0BAQsFAAOBgQAg\nm7ehTguK1TNf0OF52xArU8LgMaNpx4a+PoZ1weBuD2EJ3IhhEgncQ3dcSFd+IxPz\nbPh1TVgMWxhDqjDtnRbduYwsze95JOzam0DvS4ULFcN1m8lseAWQKZTbtsmyztDS\naC1rmaBEbHERnd+i1fvUuQEuV0fred0Ss2Nn9VVRTA==\n-----END CERTIFICATE-----",
+                "server.key": "-----BEGIN RSA PRIVATE KEY-----\nMIICXgIBAAKBgQCsZrlBbmRZscEVjnyhjithsIKrgeHizc0lJQAcV1vdlqTWVHYw\nOZNj38oXXfTnrxrLzL+7H0/CP1zOrIQggpLCLS0UPJ3uTkrttt8AW9W4flfQqFZS\np6MjIY9e9WrRWjT/vjUllxLs9rpxka9oh20LZlUMoW8CzY9oyXy5i9Bw+QIDAQAB\nAoGAFXXcDbcOKtQjsuk/vmSSJeDxAyRx1+fCZ6NJdj2xo83CyyNMawhfvoj3AR2j\nBMwZS9E69LIbHZUBmoCDGgDm/6yBiNk1ma9CJWzaeDuPJ+lDD0vKjfriu5Gt7/VQ\nx8FR7RTzOzEQ0wMjEFDUjs7t3rw+pVp6YC+4zeFCRXedhjkCQQDbhh1l1OgU+4D5\na5V/sF1jFxEf+Li8joz5snXI87GABlFS8eDG9VXRD3qyomaZq35Q7I0GBEL6JQh0\nIRUOXT0jAkEAyQwnhI4QbUf/YUJN/T1o5pEAVmm4oC9O6N3tJqsOdue/1sL7X7YI\nfmikyK5AI/W3MTsCfX0eBrj3BPUBoVFhMwJBAI+a1HBhLtFLFbwUXOADB5Ri6pj3\npCH1PtO5osOqZ1tQxrJz+I8uvszcS2/APU4ZmbBmjnp5Hzd0MmuFmLik1fECQQCs\nc0+GZTFz+5j0PSKWgVF0zJYEiWTDijDekFY2n+2lUr58If3rKEJ645nNRaJg9giw\nItTM/UB/NbM1Pk+qpxp/AkEAzDhtk6XLDl7IznXtEli+LemoEc/yKCLFsqVY7uGH\n0fCGYJH05i6ng53/xVwsDhkBpdduAmiYvSILE0fqxPLhuA==\n-----END RSA PRIVATE KEY-----"
+            }
+        }
+    ]
+}
